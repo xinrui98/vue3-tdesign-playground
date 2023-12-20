@@ -1,126 +1,263 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br />
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener"
-        >vue-cli documentation</a
-      >.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-router"
-          target="_blank"
-          rel="noopener"
-          >router</a
-        >
+  <div class="search-container" ref="searchContainer">
+    <t-icon name="search" size="20" color="black" />
+    <input
+      type="text"
+      v-model="searchQuery"
+      @input="showSearchHistoryMatchingInput"
+      @keyup.enter="handleEnter"
+      @focus="isDropdownVisible = true"
+      class="search-input"
+    />
+    <ul v-if="isDropdownVisible && searchHistory.length" class="dropdown">
+      <li
+        class="dropdown-item"
+        @click="clearSearch"
+        style="background-color: rgb(192, 192, 192)"
+      >
+        Clear History
       </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint"
-          target="_blank"
-          rel="noopener"
-          >eslint</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-typescript"
-          target="_blank"
-          rel="noopener"
-          >typescript</a
-        >
+      <li
+        v-for="result in searchHistory"
+        :key="result"
+        class="dropdown-item"
+        @click="selectItem(result)"
+      >
+        {{ result }}
       </li>
     </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li>
-        <a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a>
-      </li>
-      <li>
-        <a href="https://forum.vuejs.org" target="_blank" rel="noopener"
-          >Forum</a
-        >
-      </li>
-      <li>
-        <a href="https://chat.vuejs.org" target="_blank" rel="noopener"
-          >Community Chat</a
-        >
-      </li>
-      <li>
-        <a href="https://twitter.com/vuejs" target="_blank" rel="noopener"
-          >Twitter</a
-        >
-      </li>
-      <li>
-        <a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a>
-      </li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li>
-        <a href="https://router.vuejs.org" target="_blank" rel="noopener"
-          >vue-router</a
-        >
-      </li>
-      <li>
-        <a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a>
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-devtools#vue-devtools"
-          target="_blank"
-          rel="noopener"
-          >vue-devtools</a
-        >
-      </li>
-      <li>
-        <a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener"
-          >vue-loader</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/awesome-vue"
-          target="_blank"
-          rel="noopener"
-          >awesome-vue</a
-        >
-      </li>
-    </ul>
+    <t-space>
+      <t-dropdown
+        :options="options"
+        :max-column-width="'100%'"
+        trigger="click"
+        @click="selectItem"
+      >
+        <t-space>
+          <t-button variant="text">
+            Most Frequently Searched IP Addresses
+            <template #suffix>
+              <t-icon name="chevron-down" size="16" />
+            </template>
+          </t-button>
+        </t-space>
+      </t-dropdown>
+    </t-space>
+    <t-button @click="callApi">调包</t-button>
   </div>
 </template>
 
 <script lang="ts">
-import { Options, Vue } from "vue-class-component";
+import { defineComponent, onMounted, onUnmounted, ref } from "vue";
+import { LRUCache } from "typescript-lru-cache";
+import axios from "axios";
+import {
+  setLocalStorageWithExpiration,
+  getLocalStorageWithExpiration,
+  getMinutesUntilTomorrowMidnight,
+} from "@/utils/utils";
+import { watch } from "vue";
+import { useRoute } from "vue-router";
 
-@Options({
+export const cache = ref<LRUCache<string, string>>(
+  new LRUCache<string, string>()
+);
+
+export default defineComponent({
+  name: "SearchBar",
   props: {
     msg: String,
   },
-})
-export default class HelloWorld extends Vue {
-  msg!: string;
-}
+  setup() {
+    const searchQuery = ref("");
+    const searchHistory = ref<string[]>([]);
+    const isDropdownVisible = ref(false);
+    const searchContainer = ref<HTMLElement | null>(null);
+
+    const callApi = () => {
+      console.log("call API method");
+      const posts = getLocalStorageWithExpiration("posts");
+      console.log("Cached posts", posts);
+      if (posts == null) {
+        axios
+          .get("https://jsonplaceholder.typicode.com/posts")
+          .then((response) => {
+            console.log("Fetching API Posts:", response.data);
+            setLocalStorageWithExpiration(
+              "posts",
+              response.data,
+              getMinutesUntilTomorrowMidnight()
+            );
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+    };
+
+    const options = [
+      {
+        content: "hello world 123 ip 127.0.0.1",
+        value: 1,
+      },
+      { content: "操作二", value: 2 },
+      { content: "操作三", value: 3 },
+      { content: "操作四", value: 4 },
+    ];
+
+    function saveCacheToLocalStorage() {
+      if (cache.value) {
+        const serializedCache: [string, string][] = [];
+        // Convert cache entries to an array and store them in serializedCache
+        cache.value.forEach((value: string, key: string) => {
+          serializedCache.push([key, value]);
+        });
+        // Serialize the cache data to a JSON string
+        const serializedCacheString = JSON.stringify(serializedCache);
+        // Store the serialized cache in local storage
+        localStorage.setItem("searchHistory", serializedCacheString);
+      }
+    }
+
+    const loadCacheFromLocalStorage = () => {
+      // Try to load the LRU cache from localStorage
+      const localStorageCachedData = localStorage.getItem("searchHistory");
+      if (localStorageCachedData) {
+        // Parse the stored data as an array of key-value pairs
+        const cachedEntries: [string, string][] = JSON.parse(
+          localStorageCachedData
+        );
+        // Create a new LRUCache instance
+        const tempCache = new LRUCache<string, string>();
+        // Populate the new LRUCache with the cached entries
+        cachedEntries.forEach(([key, value]) => {
+          tempCache.set(key, value);
+        });
+        // Update the cache ref with the new cache
+        cache.value = tempCache;
+      }
+    };
+
+    function populateSearchHistory() {
+      const tempSearchHistory: string[] = [];
+      cache.value.forEach((value, key) => {
+        tempSearchHistory.unshift(key);
+      });
+      searchHistory.value = tempSearchHistory;
+    }
+
+    const showSearchHistoryMatchingInput = () => {
+      const query = searchQuery.value.toLowerCase(); // Convert the input to lowercase for case-insensitive matching
+      searchHistory.value = Array.from(cache.value.keys()).filter((key) =>
+        key.toLowerCase().includes(query)
+      );
+    };
+
+    const clearSearch = () => {
+      searchQuery.value = "";
+      searchHistory.value = [];
+      cache.value.clear();
+      saveCacheToLocalStorage();
+    };
+
+    const selectItem = (result: any) => {
+      if (result.content) {
+        searchQuery.value = result.content;
+      } else {
+        searchQuery.value = result;
+      }
+      isDropdownVisible.value = false;
+    };
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainer.value) {
+        console.log("searchContainer exists");
+        if (!searchContainer.value.contains(event.target as Node)) {
+          console.log("Click outside searchContainer detected");
+          isDropdownVisible.value = false;
+        }
+      }
+    };
+
+    const handleEnter = () => {
+      if (searchQuery.value) {
+        cache.value.set(searchQuery.value, searchQuery.value);
+        saveCacheToLocalStorage();
+      }
+    };
+
+    onMounted(() => {
+      loadCacheFromLocalStorage();
+      populateSearchHistory();
+      document.addEventListener("click", handleClickOutside);
+    });
+    onUnmounted(() => {
+      document.removeEventListener("click", handleClickOutside);
+    });
+
+    return {
+      searchQuery,
+      searchHistory,
+      isDropdownVisible,
+      searchContainer,
+      showSearchHistoryMatchingInput,
+      clearSearch,
+      selectItem,
+      handleEnter,
+      options,
+      callApi,
+    };
+  },
+});
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
+<style>
+.search-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  //max-width: 600px; width: 100%;
 }
-ul {
-  list-style-type: none;
+
+.search-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+}
+
+.search-icon {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.dropdown {
+  list-style: none;
   padding: 0;
+  margin: 0;
+  border: 1px solid #ddd;
+  position: absolute;
+  top: 100%; /* Position the dropdown right below the search bar */
+  width: 100%;
+  box-sizing: border-box;
+  background-color: white;
+  z-index: 1000;
 }
-li {
-  display: inline-block;
-  margin: 0 10px;
+
+.dropdown-item {
+  padding: 10px;
+  border-bottom: 1px solid #ddd; /* Border between items */
+  cursor: pointer;
+  text-align: left;
 }
-a {
-  color: #42b983;
+
+.dropdown-item:last-child {
+  border-bottom: none; /* Remove border for the last item */
+}
+
+.dropdown-item:hover {
+  background-color: #f5f5f5; /* Hover effect */
 }
 </style>
