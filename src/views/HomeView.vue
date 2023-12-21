@@ -1,6 +1,6 @@
 <template>
   <div class="search-container" ref="searchContainer">
-    <t-icon name="search" size="20" color="black" />
+    <t-icon name="search" size="35" color="black" />
     <input
       type="text"
       v-model="searchQuery"
@@ -187,6 +187,8 @@ export default defineComponent({
     };
 
     const handleEnter = () => {
+      console.log("handleEnter");
+      isDropdownVisible.value = false;
       if (searchQuery.value) {
         cache.value.set(searchQuery.value, searchQuery.value);
         saveCacheToLocalStorage();
