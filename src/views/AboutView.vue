@@ -22,7 +22,7 @@ import {
 } from "@/utils/utils";
 
 export default defineComponent({
-  name: "AboutPage",
+  name: "AboutView",
   components: {
     HomeIcon, // Register HomeIcon here
     RefreshIcon,

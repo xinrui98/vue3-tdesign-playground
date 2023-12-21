@@ -1,50 +1,53 @@
 <template>
-  <div class="search-container" ref="searchContainer">
-    <t-icon name="search" size="35" color="black" />
-    <input
-      type="text"
-      v-model="searchQuery"
-      @input="showSearchHistoryMatchingInput"
-      @keyup.enter="handleEnter"
-      @focus="isDropdownVisible = true"
-      class="search-input"
-    />
-    <ul v-if="isDropdownVisible && searchHistory.length" class="dropdown">
-      <li
-        class="dropdown-item"
-        @click="clearSearch"
-        style="background-color: rgb(192, 192, 192)"
-      >
-        Clear History
-      </li>
-      <li
-        v-for="result in searchHistory"
-        :key="result"
-        class="dropdown-item"
-        @click="selectItem(result)"
-      >
-        {{ result }}
-      </li>
-    </ul>
-    <t-space>
-      <t-dropdown
-        :options="options"
-        :max-column-width="'100%'"
-        trigger="click"
-        @click="selectItem"
-      >
-        <t-space>
-          <t-button variant="text">
-            Most Frequently Searched IP Addresses
-            <template #suffix>
-              <t-icon name="chevron-down" size="16" />
-            </template>
-          </t-button>
-        </t-space>
-      </t-dropdown>
-    </t-space>
-    <t-button @click="callApi">调包</t-button>
-    <t-button @click="redirectAbout">关于</t-button>
+  <div>
+    <div class="search-container" ref="searchContainer">
+      <t-icon name="search" size="35" color="black" />
+      <input
+        type="text"
+        v-model="searchQuery"
+        @input="showSearchHistoryMatchingInput"
+        @keyup.enter="handleEnter"
+        @focus="isDropdownVisible = true"
+        class="search-input"
+      />
+      <ul v-if="isDropdownVisible && searchHistory.length" class="dropdown">
+        <li
+          class="dropdown-item"
+          @click="clearSearch"
+          style="background-color: rgb(192, 192, 192)"
+        >
+          Clear History
+        </li>
+        <li
+          v-for="result in searchHistory"
+          :key="result"
+          class="dropdown-item"
+          @click="selectItem(result)"
+        >
+          {{ result }}
+        </li>
+      </ul>
+      <t-space>
+        <t-dropdown
+          :options="options"
+          :max-column-width="'100%'"
+          trigger="click"
+          @click="selectItem"
+        >
+          <t-space>
+            <t-button variant="text">
+              Most Frequently Searched IP Addresses
+              <template #suffix>
+                <t-icon name="chevron-down" size="16" />
+              </template>
+            </t-button>
+          </t-space>
+        </t-dropdown>
+      </t-space>
+      <t-button @click="callApi">调包</t-button>
+      <t-button @click="redirectAbout">关于</t-button>
+    </div>
+    <TableSort :initial-data="tableData" />
   </div>
 </template>
 
@@ -60,13 +63,15 @@ import {
 import { watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { PersonalInformationIcon } from "tdesign-icons-vue-next";
+import TableSort from "@/components/TableSort.vue";
 
 export const cache = ref<LRUCache<string, string>>(
   new LRUCache<string, string>()
 );
 
 export default defineComponent({
-  name: "SearchBar",
+  name: "HomeView",
+  components: { TableSort },
   props: {
     msg: String,
   },
@@ -76,6 +81,32 @@ export default defineComponent({
     const isDropdownVisible = ref(false);
     const searchContainer = ref<HTMLElement | null>(null);
     const router = useRouter();
+    const tableData = new Array(4).fill(null).map((_, i) => ({
+      index: i + 1,
+      applicant: ["贾明", "xinruixgao", "王芳"][i % 3],
+      channel: ["电子签署", "纸质签署", "纸质签署"][i % 3],
+      detail: {
+        email: [
+          "w.cezkdudy@lhll.au",
+          "r.nmgw@peurezgn.sl",
+          "p.cumx@rampblpa.ru",
+        ][i % 3],
+      },
+      matters: [
+        "宣传物料制作费用",
+        "algolia 服务报销",
+        "相关周边制作费",
+        "激励奖品快递费",
+      ][i % 4],
+      time: [2, 3, 1, 4][i % 4],
+      createTime: [
+        "2022-01-01",
+        "2022-02-01",
+        "2022-03-01",
+        "2022-04-01",
+        "2022-05-01",
+      ][i % 4],
+    }));
 
     function redirectAbout() {
       const randomNumber = Math.floor(Math.random() * 10) + 1;
@@ -209,6 +240,7 @@ export default defineComponent({
       searchHistory,
       isDropdownVisible,
       searchContainer,
+      tableData,
       showSearchHistoryMatchingInput,
       clearSearch,
       selectItem,
