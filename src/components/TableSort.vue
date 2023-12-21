@@ -74,15 +74,18 @@ export default defineComponent({
       // 模拟异步请求，进行数据排序
       const timer = setTimeout(() => {
         if (sort) {
-          data.value = data.value
-            .concat()
-            .sort((a, b) =>
-              sort.descending
-                ? b[sort.sortBy] - a[sort.sortBy]
-                : a[sort.sortBy] - b[sort.sortBy]
-            );
-        } else {
-          data.value = data.value.concat();
+          data.value.sort((a, b) => {
+            const aValue = a[sort.sortBy as keyof TableRow];
+            const bValue = b[sort.sortBy as keyof TableRow];
+
+            // Ensure both values are numbers before sorting
+            if (typeof aValue === "number" && typeof bValue === "number") {
+              return sort.descending ? bValue - aValue : aValue - bValue;
+            }
+
+            // If not numbers, do not sort them (return 0)
+            return 0;
+          });
         }
         clearTimeout(timer);
       }, 100);
