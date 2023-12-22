@@ -81,7 +81,7 @@ export default defineComponent({
     const isDropdownVisible = ref(false);
     const searchContainer = ref<HTMLElement | null>(null);
     const router = useRouter();
-    const tableData = new Array(4).fill(null).map((_, i) => ({
+    const tableData = new Array(15).fill(null).map((_, i) => ({
       index: i + 1,
       applicant: ["贾明", "xinruixgao", "王芳"][i % 3],
       channel: ["电子签署", "纸质签署", "纸质签署"][i % 3],

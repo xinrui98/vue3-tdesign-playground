@@ -1,6 +1,7 @@
 <template>
   <div class="tdesign-demo-block-column-large demo-container">
     <div>
+      <h1>IP 基本信息 (Digital Element)</h1>
       <span style="padding-left: 16px; vertical-align: top"
         >排序：{{ sort }}</span
       >
@@ -23,6 +24,7 @@
       :data="data"
       :sort="sort"
       :show-sort-column-bg-color="true"
+      :pagination="pagination"
       bordered
       lazy-load
       @sort-change="sortChange"
@@ -33,7 +35,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, ref } from "vue";
+import { computed, defineComponent, PropType, ref } from "vue";
 import { TableRow } from "@/models/test-row";
 interface SortParam {
   sortBy: string;
@@ -49,10 +51,7 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const sort = ref<SortParam>({
-      sortBy: "time",
-      descending: true,
-    });
+    const sort = ref<SortParam>();
 
     const columns = ref([
       { colKey: "applicant", title: "申请人", width: "100" },
@@ -70,11 +69,18 @@ export default defineComponent({
 
     const data = ref([...props.initialData]);
 
+    const pagination = {
+      defaultCurrent: 1,
+      defaultPageSize: 5,
+      total: props.initialData.length,
+    };
+
     const request = (sort: SortParam) => {
       // 模拟异步请求，进行数据排序
       const timer = setTimeout(() => {
         if (sort) {
-          data.value.sort((a, b) => {
+          // do not modify the data.value directly using .sort as vue's reactivity may not detect in-place changes well
+          data.value = [...data.value].sort((a, b) => {
             const aValue = a[sort.sortBy as keyof TableRow];
             const bValue = b[sort.sortBy as keyof TableRow];
 
@@ -100,7 +106,7 @@ export default defineComponent({
       console.log("change", info, context);
     };
 
-    return { data, columns, sort, sortChange, onChange };
+    return { data, columns, sort, pagination, sortChange, onChange };
   },
 });
 </script>
