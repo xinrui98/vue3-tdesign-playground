@@ -101,10 +101,15 @@ export default defineComponent({
       time: [2, 3, 1, 4][i % 4],
       createTime: [
         "2022-01-01",
-        "2022-02-01",
-        "2022-03-01",
-        "2022-04-01",
         "2022-05-01",
+        "2022-02-01",
+        "2022-04-01",
+        "2022-03-01",
+        // new Date("2022-01-01"),
+        // new Date("2022-02-01"),
+        // new Date("2022-03-01"),
+        // new Date("2022-04-01"),
+        // new Date("2022-05-01"),
       ][i % 4],
     }));
 
@@ -209,9 +214,7 @@ export default defineComponent({
 
     const handleClickOutside = (event: MouseEvent) => {
       if (searchContainer.value) {
-        console.log("searchContainer exists");
         if (!searchContainer.value.contains(event.target as Node)) {
-          console.log("Click outside searchContainer detected");
           isDropdownVisible.value = false;
         }
       }

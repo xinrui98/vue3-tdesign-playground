@@ -22,6 +22,7 @@
       row-key="index"
       :columns="columns"
       :data="data"
+      :selected-row-keys="selectedRowKeys"
       :sort="sort"
       :show-sort-column-bg-color="true"
       :pagination="pagination"
@@ -29,6 +30,7 @@
       lazy-load
       @sort-change="sortChange"
       @change="onChange"
+      @select-change="rehandleSelectChange"
     >
     </t-table>
   </div>
@@ -37,6 +39,7 @@
 <script lang="ts">
 import { computed, defineComponent, PropType, ref } from "vue";
 import { TableRow } from "@/models/test-row";
+import moment from "moment/moment";
 interface SortParam {
   sortBy: string;
   descending: boolean;
@@ -53,7 +56,20 @@ export default defineComponent({
   setup(props) {
     const sort = ref<SortParam>();
 
+    const selectedRowKeys = ref([]);
+
     const columns = ref([
+      {
+        colKey: "row-select",
+        type: "multiple",
+        // 禁用行选中方式一：使用 disabled 禁用行（示例代码有效，勿删）。disabled 参数：{row: RowData; rowIndex: number })
+        // 这种方式禁用行选中，当前行会添加行类名 t-table__row--disabled，禁用行文字变灰
+        // disabled: ({ rowIndex }) => rowIndex === 1 || rowIndex === 3,
+
+        // 禁用行选中方式二：使用 checkProps 禁用行（示例代码有效，勿删）
+        // 这种方式禁用行选中，行文本不会变灰
+        width: 50,
+      },
       { colKey: "applicant", title: "申请人", width: "100" },
       {
         colKey: "time",
@@ -63,8 +79,17 @@ export default defineComponent({
         sortType: "all",
         sorter: true,
       },
-      { colKey: "channel", title: "签署方式", width: "120" },
-      { colKey: "createTime", title: "申请时间" },
+      {
+        colKey: "channel",
+        title: "签署方式",
+        width: "120",
+      },
+      {
+        colKey: "createTime",
+        title: "申请时间",
+        sortType: "all",
+        sorter: true,
+      },
     ]);
 
     const data = ref([...props.initialData]);
@@ -84,6 +109,20 @@ export default defineComponent({
             const aValue = a[sort.sortBy as keyof TableRow];
             const bValue = b[sort.sortBy as keyof TableRow];
 
+            // Check if both values are date strings
+            if (
+              typeof aValue === "string" &&
+              typeof bValue === "string" &&
+              moment(aValue, "YYYY-MM-DD").isValid() &&
+              moment(bValue, "YYYY-MM-DD").isValid()
+            ) {
+              const dateA = new Date(aValue);
+              const dateB = new Date(bValue);
+              return sort.descending
+                ? dateB.getTime() - dateA.getTime()
+                : dateA.getTime() - dateB.getTime();
+            }
+
             // Ensure both values are numbers before sorting
             if (typeof aValue === "number" && typeof bValue === "number") {
               return sort.descending ? bValue - aValue : aValue - bValue;
@@ -101,12 +140,25 @@ export default defineComponent({
       sort.value = val;
       request(val);
     };
-
-    const onChange = (info: any, context: any) => {
-      console.log("change", info, context);
+    const rehandleSelectChange = (value: any, ctx: any) => {
+      selectedRowKeys.value = value;
+      console.log("rehandleSelectChange", value, ctx);
     };
 
-    return { data, columns, sort, pagination, sortChange, onChange };
+    const onChange = (info: any, context: any) => {
+      console.log("onChange", info, context);
+    };
+
+    return {
+      data,
+      selectedRowKeys,
+      columns,
+      sort,
+      pagination,
+      sortChange,
+      rehandleSelectChange,
+      onChange,
+    };
   },
 });
 </script>
