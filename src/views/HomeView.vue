@@ -30,7 +30,7 @@
       </ul>
       <t-space>
         <t-dropdown
-          :options="options"
+          :options="frequentlySearchedIpAddresses"
           :max-column-width="'100%'"
           trigger="click"
           @click="selectItem"
@@ -61,7 +61,6 @@ import {
   getLocalStorageWithExpiration,
   getMinutesUntilTomorrowMidnight,
 } from "@/utils/utils";
-import { useRouter } from "vue-router";
 import TableSort from "@/components/TableSort.vue";
 import { TableRow } from "@/models/test-row";
 
@@ -81,6 +80,17 @@ export default defineComponent({
     const isDropdownVisible = ref(false);
     const searchContainer = ref<HTMLElement | null>(null);
     const tableData = ref<TableRow[]>();
+    // const options = [
+    //   {
+    //     content: "hello world 123 ip 127.0.0.1",
+    //     value: 1,
+    //   },
+    //   { content: "操作二", value: 2 },
+    //   { content: "操作三", value: 3 },
+    //   { content: "操作四", value: 4 },
+    // ];
+    const frequentlySearchedIpAddresses = ref<any[]>([]);
+
     // const tableData = new Array(15).fill(null).map((_, i) => ({
     //   index: i + 1,
     //   applicant: ["贾明", "xinruixgao", "王芳"][i % 3],
@@ -138,16 +148,6 @@ export default defineComponent({
       }
     }
 
-    const options = [
-      {
-        content: "hello world 123 ip 127.0.0.1",
-        value: 1,
-      },
-      { content: "操作二", value: 2 },
-      { content: "操作三", value: 3 },
-      { content: "操作四", value: 4 },
-    ];
-
     function saveCacheToLocalStorage() {
       if (cache.value) {
         const serializedCache: [string, string][] = [];
@@ -162,7 +162,7 @@ export default defineComponent({
       }
     }
 
-    const loadCacheFromLocalStorage = () => {
+    const loadSearchHistoryFromLocalStorage = () => {
       // Try to load the LRU cache from localStorage
       const localStorageCachedData = localStorage.getItem("searchHistory");
       if (localStorageCachedData) {
@@ -179,7 +179,35 @@ export default defineComponent({
         // Update the cache ref with the new cache
         cache.value = tempCache;
       }
+      populateSearchHistory();
     };
+
+    function loadFrequentlySearchedIpAddresses() {
+      // Try to load the LRU cache from localStorage
+      let cachedEntries = getLocalStorageWithExpiration("frequentlySearched");
+      if (cachedEntries) {
+        frequentlySearchedIpAddresses.value = [...cachedEntries];
+      }
+      if (cachedEntries == null) {
+        axios
+          .get("http://localhost:3000/user/frequentlysearched")
+          .then((response) => {
+            setLocalStorageWithExpiration(
+              "frequentlySearched",
+              response.data,
+              getMinutesUntilTomorrowMidnight()
+            );
+            frequentlySearchedIpAddresses.value = [...response.data];
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+      console.log(
+        "frequentlySearchedIpAddresses.value",
+        frequentlySearchedIpAddresses.value
+      );
+    }
 
     function populateSearchHistory() {
       const tempSearchHistory: string[] = [];
@@ -240,8 +268,8 @@ export default defineComponent({
     };
 
     onMounted(() => {
-      loadCacheFromLocalStorage();
-      populateSearchHistory();
+      loadSearchHistoryFromLocalStorage();
+      loadFrequentlySearchedIpAddresses();
       document.addEventListener("click", handleClickOutside);
     });
     onUnmounted(() => {
@@ -258,7 +286,7 @@ export default defineComponent({
       clearSearch,
       selectItem,
       handleEnter,
-      options,
+      frequentlySearchedIpAddresses,
       callApi,
     };
   },
