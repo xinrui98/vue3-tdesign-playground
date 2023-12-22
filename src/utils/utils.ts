@@ -75,3 +75,12 @@ export function getRandomDateString(): string {
 
   return `${year}-${month}-${day}`;
 }
+
+export function convertToSeconds(time: string): number {
+  const [minutes, seconds] = time.split(":");
+
+  const minutesInSeconds = Number(minutes) * 60;
+  const secondsInSeconds = Number(seconds);
+
+  return minutesInSeconds + secondsInSeconds;
+}

@@ -46,7 +46,6 @@
         </t-dropdown>
       </t-space>
       <t-button @click="callApi">调包</t-button>
-      <t-button @click="redirectAbout">关于</t-button>
     </div>
     <TableSort :initial-data="tableData" />
   </div>
@@ -57,7 +56,7 @@ import { defineComponent, onMounted, onUnmounted, ref } from "vue";
 import { LRUCache } from "typescript-lru-cache";
 import axios from "axios";
 import {
-  getRandomDateString,
+  convertToSeconds,
   setLocalStorageWithExpiration,
   getLocalStorageWithExpiration,
   getMinutesUntilTomorrowMidnight,
@@ -81,7 +80,6 @@ export default defineComponent({
     const searchHistory = ref<string[]>([]);
     const isDropdownVisible = ref(false);
     const searchContainer = ref<HTMLElement | null>(null);
-    const router = useRouter();
     const tableData = ref<TableRow[]>();
     // const tableData = new Array(15).fill(null).map((_, i) => ({
     //   index: i + 1,
@@ -113,17 +111,10 @@ export default defineComponent({
     function convertToTableRows(apiData: any) {
       return apiData.map((item: any, index: any) => ({
         index: index + 1,
-        userId: item.userId.toString(),
-        time: Math.floor(Math.random() * 24), // Random time between 0 to 23 hours
-        title: item.title,
-        body: item.body,
-        createTime: getRandomDateString(),
+        id: item.id,
+        date: item.date,
+        run_time: convertToSeconds(item.run_time),
       }));
-    }
-
-    function redirectAbout() {
-      const randomNumber = Math.floor(Math.random() * 10) + 1;
-      router.push({ name: "about", params: { id: randomNumber } });
     }
     function callApi() {
       console.log("call API method");
@@ -134,8 +125,6 @@ export default defineComponent({
           .get("https://jsonplaceholder.typicode.com/posts")
           .then((response) => {
             console.log("Fetching API Posts:", response.data);
-            tableData.value = convertToTableRows(response.data);
-            console.log("tableData", tableData.value);
 
             setLocalStorageWithExpiration(
               "posts",
@@ -238,6 +227,16 @@ export default defineComponent({
         cache.value.set(searchQuery.value, searchQuery.value);
         saveCacheToLocalStorage();
       }
+      axios
+        // .get(`https://jsonplaceholder.typicode.com/posts`)
+        .get(`http://localhost:3000/user/allrecords`)
+        .then((response) => {
+          tableData.value = convertToTableRows(response.data);
+          console.log("tableData", tableData.value);
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
     };
 
     onMounted(() => {
@@ -261,7 +260,6 @@ export default defineComponent({
       handleEnter,
       options,
       callApi,
-      redirectAbout,
     };
   },
 });

@@ -69,28 +69,18 @@ export default defineComponent({
         // 这种方式禁用行选中，行文本不会变灰
         width: 50,
       },
-      { colKey: "userId", title: "申请人", width: "100" },
+      { colKey: "id", title: "id", width: "100" },
       {
-        colKey: "time",
-        title: "申请耗时(天)",
+        colKey: "date",
+        title: "date",
         width: "140",
         align: "center",
         sortType: "all",
         sorter: true,
       },
       {
-        colKey: "title",
-        title: "签署方式",
-        width: "120",
-      },
-      {
-        colKey: "body",
-        title: "body",
-        width: "120",
-      },
-      {
-        colKey: "createTime",
-        title: "申请时间",
+        colKey: "run_time",
+        title: "run_time",
         sortType: "all",
         sorter: true,
       },
