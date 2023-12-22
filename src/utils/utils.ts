@@ -50,3 +50,28 @@ export function getMinutesUntilTomorrowMidnight(): number {
   // Convert milliseconds to minutes
   return Math.floor(timeDifference / (1000 * 60));
 }
+
+export function getRandomDate() {
+  const start = new Date(2022, 0, 1); // Start date (e.g., Jan 1, 2022)
+  const end = new Date(); // Current date
+  return new Date(
+    start.getTime() + Math.random() * (end.getTime() - start.getTime())
+  );
+}
+
+export function getRandomDateString(): string {
+  const date = getRandomDate();
+  const year = date.getFullYear();
+  let month = (date.getMonth() + 1).toString();
+  let day = date.getDate().toString();
+
+  if (month.length < 2) {
+    month = "0" + month;
+  }
+
+  if (day.length < 2) {
+    day = "0" + day;
+  }
+
+  return `${year}-${month}-${day}`;
+}

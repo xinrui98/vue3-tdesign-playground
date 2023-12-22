@@ -1,12 +1,9 @@
 // models.ts
 export type TableRow = {
   index: number;
-  applicant: string;
-  channel: string;
-  detail: {
-    email: string;
-  };
-  matters: string;
+  userId: string;
   time: number;
+  title: string;
+  body: string;
   createTime: string;
 };

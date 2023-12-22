@@ -1,7 +1,6 @@
 <template>
   <div class="tdesign-demo-block-column-large demo-container">
     <div>
-      <h1>IP 基本信息 (Digital Element)</h1>
       <span style="padding-left: 16px; vertical-align: top"
         >排序：{{ sort }}</span
       >
@@ -37,7 +36,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, ref } from "vue";
+import { computed, defineComponent, PropType, ref, watch } from "vue";
 import { TableRow } from "@/models/test-row";
 import moment from "moment/moment";
 interface SortParam {
@@ -70,7 +69,7 @@ export default defineComponent({
         // 这种方式禁用行选中，行文本不会变灰
         width: 50,
       },
-      { colKey: "applicant", title: "申请人", width: "100" },
+      { colKey: "userId", title: "申请人", width: "100" },
       {
         colKey: "time",
         title: "申请耗时(天)",
@@ -80,8 +79,13 @@ export default defineComponent({
         sorter: true,
       },
       {
-        colKey: "channel",
+        colKey: "title",
         title: "签署方式",
+        width: "120",
+      },
+      {
+        colKey: "body",
+        title: "body",
         width: "120",
       },
       {
@@ -99,6 +103,16 @@ export default defineComponent({
       defaultPageSize: 5,
       total: props.initialData.length,
     };
+
+    // Watcher to update data when initialData changes
+    watch(
+      () => props.initialData,
+      (newData) => {
+        data.value = [...newData];
+        pagination.total = data.value.length;
+      },
+      { immediate: true }
+    );
 
     const request = (sort: SortParam) => {
       // 模拟异步请求，进行数据排序

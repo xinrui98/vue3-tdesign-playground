@@ -1,5 +1,6 @@
 <template>
   <div>
+    <h1 class="banner-text">IP 基本信息 (Digital Element)</h1>
     <div class="search-container" ref="searchContainer">
       <t-icon name="search" size="35" color="black" />
       <input
@@ -56,14 +57,14 @@ import { defineComponent, onMounted, onUnmounted, ref } from "vue";
 import { LRUCache } from "typescript-lru-cache";
 import axios from "axios";
 import {
+  getRandomDateString,
   setLocalStorageWithExpiration,
   getLocalStorageWithExpiration,
   getMinutesUntilTomorrowMidnight,
 } from "@/utils/utils";
-import { watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { PersonalInformationIcon } from "tdesign-icons-vue-next";
+import { useRouter } from "vue-router";
 import TableSort from "@/components/TableSort.vue";
+import { TableRow } from "@/models/test-row";
 
 export const cache = ref<LRUCache<string, string>>(
   new LRUCache<string, string>()
@@ -81,37 +82,44 @@ export default defineComponent({
     const isDropdownVisible = ref(false);
     const searchContainer = ref<HTMLElement | null>(null);
     const router = useRouter();
-    const tableData = new Array(15).fill(null).map((_, i) => ({
-      index: i + 1,
-      applicant: ["贾明", "xinruixgao", "王芳"][i % 3],
-      channel: ["电子签署", "纸质签署", "纸质签署"][i % 3],
-      detail: {
-        email: [
-          "w.cezkdudy@lhll.au",
-          "r.nmgw@peurezgn.sl",
-          "p.cumx@rampblpa.ru",
-        ][i % 3],
-      },
-      matters: [
-        "宣传物料制作费用",
-        "algolia 服务报销",
-        "相关周边制作费",
-        "激励奖品快递费",
-      ][i % 4],
-      time: [2, 3, 1, 4][i % 4],
-      createTime: [
-        "2022-01-01",
-        "2022-05-01",
-        "2022-02-01",
-        "2022-04-01",
-        "2022-03-01",
-        // new Date("2022-01-01"),
-        // new Date("2022-02-01"),
-        // new Date("2022-03-01"),
-        // new Date("2022-04-01"),
-        // new Date("2022-05-01"),
-      ][i % 4],
-    }));
+    const tableData = ref<TableRow[]>();
+    // const tableData = new Array(15).fill(null).map((_, i) => ({
+    //   index: i + 1,
+    //   applicant: ["贾明", "xinruixgao", "王芳"][i % 3],
+    //   channel: ["电子签署", "纸质签署", "纸质签署"][i % 3],
+    //   detail: {
+    //     email: [
+    //       "w.cezkdudy@lhll.au",
+    //       "r.nmgw@peurezgn.sl",
+    //       "p.cumx@rampblpa.ru",
+    //     ][i % 3],
+    //   },
+    //   matters: [
+    //     "宣传物料制作费用",
+    //     "algolia 服务报销",
+    //     "相关周边制作费",
+    //     "激励奖品快递费",
+    //   ][i % 4],
+    //   time: [2, 3, 1, 4][i % 4],
+    //   createTime: [
+    //     "2022-01-01",
+    //     "2022-05-01",
+    //     "2022-02-01",
+    //     "2022-04-01",
+    //     "2022-03-01",
+    //   ][i % 4],
+    // }));
+
+    function convertToTableRows(apiData: any) {
+      return apiData.map((item: any, index: any) => ({
+        index: index + 1,
+        userId: item.userId.toString(),
+        time: Math.floor(Math.random() * 24), // Random time between 0 to 23 hours
+        title: item.title,
+        body: item.body,
+        createTime: getRandomDateString(),
+      }));
+    }
 
     function redirectAbout() {
       const randomNumber = Math.floor(Math.random() * 10) + 1;
@@ -126,6 +134,9 @@ export default defineComponent({
           .get("https://jsonplaceholder.typicode.com/posts")
           .then((response) => {
             console.log("Fetching API Posts:", response.data);
+            tableData.value = convertToTableRows(response.data);
+            console.log("tableData", tableData.value);
+
             setLocalStorageWithExpiration(
               "posts",
               response.data,
@@ -304,5 +315,11 @@ export default defineComponent({
 
 .dropdown-item:hover {
   background-color: #f5f5f5; /* Hover effect */
+}
+.banner-text {
+  font-family: "Arial", sans-serif;
+  font-size: 36px;
+  font-weight: bold;
+  color: #333;
 }
 </style>
