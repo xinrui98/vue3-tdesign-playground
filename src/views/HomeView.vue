@@ -5,6 +5,7 @@
       <t-icon name="search" size="35" color="black" />
       <input
         type="text"
+        placeholder="Search IP addresses using commas or spaces as delimiters, e.g. 192.168.1.1, 192.168.1.2"
         v-model="searchQuery"
         @input="showSearchHistoryMatchingInput"
         @keyup.enter="handleEnter"
@@ -124,6 +125,7 @@ export default defineComponent({
         id: item.id,
         date: item.date,
         run_time: convertToSeconds(item.run_time),
+        runner: item.runner,
       }));
     }
     function callApi() {
