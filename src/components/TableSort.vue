@@ -105,12 +105,12 @@ export default defineComponent({
     };
     const filterValue = ref({});
     // triggered when filter input is typed
-    const onFilterRunTime = (val: any, ctx: any) => {
+    const onFilterRunTime = <T, U>(val: T, ctx: U) => {
       console.log("onFilterRunTime", val, ctx);
     };
 
     // triggered when filter is on/off
-    const onFilterChange = (filters: any, ctx: any) => {
+    function onFilterChange<T>(filters: any, ctx: T) {
       console.log("onFilterChange", filters, ctx);
       filterValue.value = {
         ...filters,
@@ -118,7 +118,7 @@ export default defineComponent({
       };
       console.log(filters);
       requestFilter(filters);
-    };
+    }
 
     const requestFilter = (filters: any) => {
       console.log("sortedData", sortedData.value);
@@ -137,7 +137,7 @@ export default defineComponent({
       }, 100);
     };
 
-    const selectedRowKeys = ref([]);
+    const selectedRowKeys = ref<(string | number)[]>([]);
 
     const columns = ref([
       {
@@ -212,12 +212,12 @@ export default defineComponent({
       },
       { immediate: true }
     );
-    const rehandleSelectChange = (value: any, ctx: any) => {
+    const rehandleSelectChange = (value: string[] | number[], ctx: any) => {
       selectedRowKeys.value = value;
       console.log("rehandleSelectChange", value, ctx);
     };
 
-    const onChange = (info: any, context: any) => {
+    const onChange = <T, U>(info: T, context: U) => {
       console.log("onChange", info, context);
     };
 

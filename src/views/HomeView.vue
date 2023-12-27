@@ -34,7 +34,7 @@
           :options="frequentlySearchedIpAddresses"
           :max-column-width="'100%'"
           trigger="click"
-          @click="selectItem"
+          @click="(item) => selectItem(item.content)"
         >
           <t-space>
             <t-button variant="text">
@@ -90,7 +90,7 @@ export default defineComponent({
     //   { content: "操作三", value: 3 },
     //   { content: "操作四", value: 4 },
     // ];
-    const frequentlySearchedIpAddresses = ref<any[]>([]);
+    const frequentlySearchedIpAddresses = ref<string[]>([]);
 
     // const tableData = new Array(15).fill(null).map((_, i) => ({
     //   index: i + 1,
@@ -233,12 +233,9 @@ export default defineComponent({
       saveCacheToLocalStorage();
     };
 
-    const selectItem = (result: any) => {
-      if (result.content) {
-        searchQuery.value = result.content;
-      } else {
-        searchQuery.value = result;
-      }
+    const selectItem = (result: string) => {
+      console.log("selectItem", result);
+      searchQuery.value = result;
       isDropdownVisible.value = false;
     };
 
@@ -309,12 +306,6 @@ export default defineComponent({
   padding: 10px;
   border: 1px solid #ddd;
   box-sizing: border-box;
-}
-
-.search-icon {
-  display: flex;
-  align-items: center;
-  padding: 0 10px;
 }
 
 .dropdown {

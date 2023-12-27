@@ -1,8 +1,8 @@
 // utils.ts
 
-export function setLocalStorageWithExpiration(
+export function setLocalStorageWithExpiration<T>(
   key: string,
-  value: any,
+  value: T,
   expirationMinutes: number
 ): void {
   const now = new Date();
